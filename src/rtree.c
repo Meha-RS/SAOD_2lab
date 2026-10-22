@@ -87,6 +87,22 @@ rtree_node *rtree_lookup(rtree *tree, const char *key){
 }
 
 // Добавление
+static void child_insert_sorted(rtree_node *parent, rtree_node *child) {
+    parent->children = realloc(parent->children, (parent->n_children + 1) * sizeof(rtree_node*));
+    
+    size_t pos = 0;
+    while (pos < parent->n_children && parent->children[pos]->prefix[0] < child->prefix[0]) {
+        pos++;
+    }
+    
+    for (size_t i = parent->n_children; i > pos; i--) {
+        parent->children[i] = parent->children[i - 1];
+    }
+    
+    parent->children[pos] = child;
+    parent->n_children++;
+}
+
 rtree *rtree_insert(rtree *tree, const char *key, uint32_t value) {
     if (!tree || !key || key[0] == '\0')
         return tree;
@@ -102,8 +118,7 @@ rtree *rtree_insert(rtree *tree, const char *key, uint32_t value) {
             rtree_node *node = node_create(&key[i], strlen(&key[i]));
             node->is_end = true;
             node->value = value;
-            cur->children = realloc(cur->children, (cur->n_children + 1) * sizeof(rtree_node*));
-            cur->children[cur->n_children++] = node;
+            child_insert_sorted(cur, node);
             tree->count++;
             return tree;
         }
@@ -136,8 +151,7 @@ rtree *rtree_insert(rtree *tree, const char *key, uint32_t value) {
         child->prefix_len -= match;
         free(old);
 
-        mid->children = malloc(2 * sizeof(rtree_node*));
-        mid->children[mid->n_children++] = child;
+        child_insert_sorted(mid, child);
 
         if (key[i + match] == '\0') {
             mid->is_end = true;
@@ -147,7 +161,7 @@ rtree *rtree_insert(rtree *tree, const char *key, uint32_t value) {
             rtree_node *new_node = node_create(&key[i + match], strlen(&key[i + match]));
             new_node->is_end = true;
             new_node->value = value;
-            mid->children[mid->n_children++] = new_node;
+            child_insert_sorted(mid, new_node);
             tree->count++;
         }
 
