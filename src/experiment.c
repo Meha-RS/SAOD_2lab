@@ -35,7 +35,7 @@ void run_experiment(const char *filename) {
     }
     
     for (int i = 0; i < total_words; i++) {
-        words[i] = malloc(30);
+        words[i] = malloc(32);
         fscanf(f, "%s", words[i]);
     }
     fclose(f);
