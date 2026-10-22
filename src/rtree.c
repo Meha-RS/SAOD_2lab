@@ -55,10 +55,22 @@ void rtree_free(rtree *tree){
 }
 
 // Поиск
-static int child_find(rtree_node *node, char c){
-    for(size_t i = 0; i < node->n_children; ++i)
-        if(node->children[i]->prefix[0] == c)
-            return (int)i;
+static int child_find(rtree_node *node, char c) {
+    int left = 0;
+    int right = (int)node->n_children - 1;
+    
+    while (left <= right) {
+        int mid = left + (right - left) / 2;
+        char mid_char = node->children[mid]->prefix[0];
+        
+        if (mid_char == c) {
+            return mid;
+        } else if (mid_char < c) {
+            left = mid + 1;
+        } else {
+            right = mid - 1;
+        }
+    }
     return -1;
 }
 
